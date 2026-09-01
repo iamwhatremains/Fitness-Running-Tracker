@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bench &amp; Bib">
+<title>Bench &amp; Bib — Training Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEE9DE;
+    --paper-2:#E5DECF;
+    --card:#FBF9F4;
+    --ink:#22282A;
+    --ink-soft:#5B615F;
+    --line:#D8CFBC;
+    --rust:#C1452C;
+    --rust-dim:#E9CFC5;
+    --steel:#3E5C6B;
+    --steel-dim:#D9E1E3;
+    --moss:#57794F;
+    --moss-dim:#DCE6D6;
+    --amber:#B8863B;
+    --radius-card: 14px;
+    --radius-pill: 999px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    overscroll-behavior-y: none;
+  }
+  .display{ font-family:'Oswald', sans-serif; }
+
+  #app{
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+    position: relative;
+  }
+
+  /* ---------- HEADER ---------- */
+  header.top-bar{
+    padding: calc(18px + var(--safe-top)) 20px 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+  }
+  header.top-bar .title-row{
+    display:flex; align-items:baseline; justify-content:space-between; gap: 10px;
+  }
+  header.top-bar h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size: 22px;
+    letter-spacing: 0.3px;
+    margin:0;
+  }
+  header.top-bar .week-tag{
+    font-size: 12px;
+    color: var(--paper);
+    opacity: 0.65;
+    font-weight: 500;
+  }
+  .progress-track{
+    margin-top: 14px;
+    height: 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.14);
+    overflow: hidden;
+  }
+  .progress-fill{
+    height: 100%;
+    background: var(--rust);
+    border-radius: 4px;
+    transition: width 0.35s ease;
+  }
+  .progress-caption{
+    margin-top: 8px;
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  /* ---------- MAIN ---------- */
+  main{
+    flex: 1;
+    padding: 18px 16px calc(96px + var(--safe-bottom));
+    overflow-y: auto;
+  }
+  section.panel{ display:none; }
+  section.panel.active{ display:block; animation: fade 0.2s ease; }
+  @keyframes fade{ from{opacity:0; transform: translateY(4px);} to{opacity:1; transform:none;} }
+
+  h2.section-title{
+    font-family:'Oswald', sans-serif;
+    font-size: 19px;
+    font-weight: 600;
+    margin: 2px 0 4px;
+  }
+  p.section-sub{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+    line-height: 1.5;
+  }
+
+  /* ---------- PHASE CARDS (Plan tab) ---------- */
+  .phase-card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .phase-card.current{
+    border-color: var(--rust);
+    box-shadow: 0 0 0 1px var(--rust);
+  }
+  .phase-card.current::before{
+    content: "This week";
+    position:absolute; top:-9px; left: 14px;
+    background: var(--rust); color: white;
+    font-size: 10.5px; font-weight:600;
+    padding: 2px 8px; border-radius: var(--radius-pill);
+    letter-spacing: 0.2px;
+  }
+  .phase-head{
+    display:flex; justify-content: space-between; align-items:center; margin-bottom: 8px;
+  }
+  .phase-head h3{
+    font-family:'Oswald', sans-serif;
+    font-size: 17px; font-weight: 600; margin:0;
+  }
+  .phase-struct{
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0 0 12px;
+  }
+  .phase-struct b{ color: var(--ink); font-weight: 600; }
+  .week-toggles{ display:flex; gap: 8px; }
+  .week-toggle{
+    flex:1;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    border-radius: 10px;
+    padding: 9px 10px;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    font-size: 13px; font-weight: 500;
+    cursor:pointer;
+    color: var(--ink-soft);
+    transition: all 0.15s ease;
+  }
+  .week-toggle .dot{
+    width: 15px; height:15px; border-radius:50%;
+    border: 2px solid var(--ink-soft);
+    flex-shrink:0;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+  .week-toggle.done{
+    background: var(--moss-dim);
+    border-color: var(--moss);
+    color: var(--moss);
+  }
+  .week-toggle.done .dot{
+    background: var(--moss); border-color: var(--moss);
+  }
+  .week-toggle.done .dot::after{
+    content:"";
+    position:absolute; left:3px; top:0px; width:4px; height:8px;
+    border-right:2px solid white; border-bottom:2px solid white;
+    transform: rotate(40deg);
+  }
+
+  /* ---------- LIFT tab ---------- */
+  .lift-group{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .lift-group-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 14px 16px;
+    cursor:pointer;
+  }
+  .lift-group-head h3{
+    font-family:'Oswald', sans-serif;
+    font-size: 16px; font-weight:600; margin:0;
+    display:flex; align-items:center; gap:9px;
+  }
+  .lift-group-head .swatch{
+    width:9px; height:9px; border-radius:50%;
+  }
+  .chev{ transition: transform 0.2s ease; color: var(--ink-soft); }
+  .lift-group.open .chev{ transform: rotate(180deg); }
+  .lift-list{
+    max-height:0; overflow:hidden; transition: max-height 0.25s ease;
+    padding: 0 16px;
+  }
+  .lift-group.open .lift-list{ padding-bottom: 12px; }
+  .lift-list ul{ margin:0; padding: 0 0 0 2px; list-style:none; }
+  .lift-list li{
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .lift-list li:first-child{ border-top:none; }
+  .lift-list li::before{
+    content:"";
+    width:5px;height:5px;border-radius:50%;
+    background: var(--ink-soft); flex-shrink:0;
+  }
+
+  /* ---------- TRACK tab ---------- */
+  .metric-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;
+  }
+  .metric-card{
+    background: var(--card); border:1px solid var(--line); border-radius: var(--radius-card);
+    padding: 13px 14px;
+  }
+  .metric-card .label{
+    font-size: 11.5px; color: var(--ink-soft); font-weight:500; margin-bottom:6px;
+  }
+  .metric-card .value{
+    font-family:'Oswald', sans-serif;
+    font-size: 22px; font-weight:600; line-height:1;
+  }
+  .metric-card .value small{ font-size:12px; font-weight:500; color:var(--ink-soft); }
+  .track-note{
+    background: var(--steel-dim);
+    border-radius: var(--radius-card);
+    padding: 13px 15px;
+    font-size: 13px;
+    color: var(--steel);
+    line-height:1.5;
+    margin-bottom: 16px;
+  }
+  .track-note b{ color: var(--ink); }
+  .checklist-item{
+    display:flex; align-items:center; gap:12px;
+    padding: 12px 4px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .checklist-item:first-child{ border-top:none; }
+  .checklist-item .num{
+    font-family:'Oswald', sans-serif;
+    font-size:13px; font-weight:600;
+    width:22px; height:22px; border-radius:50%;
+    background: var(--paper-2); color: var(--ink-soft);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .checklist-item .txt b{ display:block; font-weight:600; }
+  .checklist-item .txt span{ font-size:12.5px; color: var(--ink-soft); }
+
+  /* ---------- LOG tab (form) ---------- */
+  .field{ margin-bottom: 13px; }
+  .field label{
+    display:block; font-size: 12.5px; font-weight:600; color: var(--ink-soft); margin-bottom: 5px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+  }
+  .field input:focus, .field textarea:focus{
+    outline:none; border-color: var(--rust);
+  }
+  .field textarea{ resize: vertical; min-height: 56px; }
+  .row2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row4{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .save-btn{
+    width:100%;
+    background: var(--rust);
+    color: white;
+    border:none;
+    padding: 13px;
+    border-radius: 10px;
+    font-family:'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    margin: 6px 0 22px;
+    cursor:pointer;
+  }
+  .save-btn:active{ opacity: 0.85; }
+  .toast{
+    position: fixed;
+    bottom: calc(88px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 18px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events:none;
+    transition: all 0.25s ease;
+    z-index: 40;
+    max-width: 90%;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  .history-head{
+    display:flex; justify-content:space-between; align-items:center; margin: 22px 0 10px;
+  }
+  .history-head h3{ font-family:'Oswald',sans-serif; font-size:15px; font-weight:600; margin:0; }
+  .entry-card{
+    background: var(--card); border:1px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 9px;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+  }
+  .entry-card .date{ font-weight:600; font-size:13.5px; }
+  .entry-card .stats{ font-size:12.5px; color:var(--ink-soft); margin-top:3px; line-height:1.6; }
+  .entry-card .del{
+    border:none; background:none; color: var(--ink-soft); font-size: 18px; line-height:1; cursor:pointer; padding: 2px 4px;
+  }
+  .empty-state{
+    text-align:center; padding: 30px 10px; color: var(--ink-soft); font-size: 13.5px;
+  }
+
+  /* ---------- TAB BAR ---------- */
+  nav.tab-bar{
+    position: fixed;
+    left:50%; transform: translateX(-50%);
+    bottom:0;
+    width:100%;
+    max-width: 480px;
+    background: rgba(251,249,244,0.92);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line);
+    display:flex;
+    padding: 8px 8px calc(10px + var(--safe-bottom));
+    z-index: 30;
+  }
+  nav.tab-bar button{
+    flex:1;
+    background:none; border:none;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding: 6px 2px;
+    color: var(--ink-soft);
+    font-family:'Inter', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor:pointer;
+  }
+  nav.tab-bar button svg{ width:22px; height:22px; }
+  nav.tab-bar button.active{ color: var(--rust); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="top-bar">
+    <div class="title-row">
+      <h1>Bench &amp; Bib</h1>
+      <span class="week-tag" id="weekTag">Week 1 of 12</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-caption" id="progressCaption">0 of 12 weeks complete</div>
+  </header>
+
+  <main>
+
+    <!-- PLAN -->
+    <section class="panel active" id="panel-plan">
+      <h2 class="section-title">12-week run plan</h2>
+      <p class="section-sub">Check off each week once you've completed all its sessions.</p>
+      <div id="phaseList"></div>
+    </section>
+
+    <!-- LIFT -->
+    <section class="panel" id="panel-lift">
+      <h2 class="section-title">Lift days</h2>
+      <p class="section-sub">Tap a group to see the exercises.</p>
+      <div id="liftList"></div>
+    </section>
+
+    <!-- TRACK -->
+    <section class="panel" id="panel-track">
+      <h2 class="section-title">What to track</h2>
+      <p class="section-sub">A quick dashboard pulled from your daily entries.</p>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="label">Morning weight (latest)</div>
+          <div class="value" id="mLatestWeight">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Weekly average</div>
+          <div class="value" id="mWeekAvg">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Mile time (latest)</div>
+          <div class="value" id="mMile">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Last run logged</div>
+          <div class="value" id="mLastRun" style="font-size:14px; line-height:1.4;">—</div>
+        </div>
+      </div>
+      <div class="track-note" id="currentRunNote"></div>
+      <div>
+        <div class="checklist-item"><div class="num">1</div><div class="txt"><b>Morning body weight</b><span>Log it first thing, before food or water.</span></div></div>
+        <div class="checklist-item"><div class="num">2</div><div class="txt"><b>Weekly average weight</b><span>Auto-calculated above from this week's entries.</span></div></div>
+        <div class="checklist-item"><div class="num">3</div><div class="txt"><b>Running duration</b><span>e.g. 1 min run / 2 min walk × 8 — note what you actually did.</span></div></div>
+        <div class="checklist-item"><div class="num">4</div><div class="txt"><b>Mile time</b><span>Test it periodically to see the plan working.</span></div></div>
+      </div>
+    </section>
+
+    <!-- LOG -->
+    <section class="panel" id="panel-log">
+      <h2 class="section-title">Daily entry</h2>
+      <p class="section-sub">Log today's numbers. Everything's optional except the date.</p>
+
+      <div class="field">
+        <label for="inDate">Date</label>
+        <input type="date" id="inDate">
+      </div>
+      <div class="field">
+        <label for="inWeight">Morning weight (lbs)</label>
+        <input type="number" step="0.1" id="inWeight" placeholder="e.g. 178.4">
+      </div>
+      <div class="field">
+        <label for="inRun">Running today</label>
+        <input type="text" id="inRun" placeholder="e.g. 8 min jog / 2 min walk × 4">
+      </div>
+      <div class="field">
+        <label for="inMile">Mile time</label>
+        <input type="text" id="inMile" placeholder="e.g. 9:42">
+      </div>
+      <div class="row4">
+        <div class="field"><label for="inCal">Calories</label><input type="number" id="inCal" placeholder="0"></div>
+        <div class="field"><label for="inProtein">Protein (g)</label><input type="number" id="inProtein" placeholder="0"></div>
+        <div class="field"><label for="inCarbs">Carbs (g)</label><input type="number" id="inCarbs" placeholder="0"></div>
+        <div class="field"><label for="inFat">Fat (g)</label><input type="number" id="inFat" placeholder="0"></div>
+      </div>
+      <div class="field">
+        <label for="inNotes">Food / notes</label>
+        <textarea id="inNotes" placeholder="What you ate, how the session felt, anything else"></textarea>
+      </div>
+      <button class="save-btn" id="saveBtn">Save today's entry</button>
+
+      <div class="history-head"><h3>History</h3></div>
+      <div id="historyList"></div>
+    </section>
+
+  </main>
+
+  <nav class="tab-bar">
+    <button data-tab="plan" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4l-3 3 5 5-6 7"/><circle cx="17" cy="4" r="2"/><path d="M4 21l4-4"/></svg>
+      Plan
+    </button>
+    <button data-tab="lift">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M4 9l3-3M17 20l3-3M2 12l2-2 4 4-2 2zM16 6l2-2 4 4-2 2z"/></svg>
+      Lift
+    </button>
+    <button data-tab="track">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+      Track
+    </button>
+    <button data-tab="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+      Log
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const PHASES = [
+  { weeks:[1,2],  title:"Weeks 1–2",  color:"var(--rust)",
+    struct:"<b>5 min</b> brisk walk warmup, then <b>1 min jog / 2 min walk</b> × 8, then <b>5 min</b> cooldown." },
+  { weeks:[3,4],  title:"Weeks 3–4",  color:"var(--rust)",
+    struct:"<b>5 min</b> walk, then <b>2 min jog / 2 min walk</b> × 7–8, then <b>5 min</b> cooldown." },
+  { weeks:[5,6],  title:"Weeks 5–6",  color:"var(--rust)",
+    struct:"<b>3 min jog / 2 min walk</b> × 6." },
+  { weeks:[7,8],  title:"Weeks 7–8",  color:"var(--rust)",
+    struct:"<b>5 min jog / 2 min walk</b> × 5." },
+  { weeks:[9,10], title:"Weeks 9–10", color:"var(--rust)",
+    struct:"<b>8 min jog / 2 min walk</b> × 4." },
+  { weeks:[11,12],title:"Weeks 11–12",color:"var(--rust)",
+    struct:"Start experimenting with <b>10 min jog / 2 min walk</b> × 3." },
+];
+
+const LIFTS = [
+  { name:"Chest / Triceps", swatch:"var(--rust)", exercises:["Bench","DB press","DB fly","Skull crusher","Overhead extensions","Cable tricep extensions","Dips"] },
+  { name:"Back / Biceps", swatch:"var(--steel)", exercises:["Bent over BB row","Pull ups","DB row","DB curls","BB curls","Concentration curls"] },
+  { name:"Shoulders", swatch:"var(--amber)", exercises:["BB shrugs","DB shrugs","Lat raises","Front raises","Rear delt raises"] },
+  { name:"Legs", swatch:"var(--moss)", exercises:["BB squat","Romanian deadlifts","Leg extensions","Leg curls","Calf raises"] },
+];
+
+/* ---------------- STATE ---------------- */
+let weeksCompleted = Array(12).fill(false);
+let logs = []; // {id,date,weight,run,mile,cal,protein,carbs,fat,notes}
+
+/* ---------------- STORAGE HELPERS ---------------- */
+async function loadState(){
+  try{
+    const r = await window.storage.get('weeks-completed');
+    if(r && r.value) weeksCompleted = JSON.parse(r.value);
+  }catch(e){ /* no data yet */ }
+  try{
+    const r = await window.storage.get('daily-logs');
+    if(r && r.value) logs = JSON.parse(r.value);
+  }catch(e){ /* no data yet */ }
+}
+async function saveWeeks(){
+  try{ await window.storage.set('weeks-completed', JSON.stringify(weeksCompleted)); }
+  catch(e){ console.error('save weeks failed', e); }
+}
+async function saveLogs(){
+  try{ await window.storage.set('daily-logs', JSON.stringify(logs)); }
+  catch(e){ console.error('save logs failed', e); }
+}
+
+/* ---------------- TABS ---------------- */
+document.querySelectorAll('nav.tab-bar button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tab-bar button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('section.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------------- RENDER: PLAN ---------------- */
+function currentWeekNumber(){
+  const idx = weeksCompleted.findIndex(w=>!w);
+  return idx === -1 ? 12 : idx+1;
+}
+function renderHeader(){
+  const done = weeksCompleted.filter(Boolean).length;
+  document.getElementById('progressFill').style.width = (done/12*100)+'%';
+  document.getElementById('progressCaption').textContent = `${done} of 12 weeks complete`;
+  document.getElementById('weekTag').textContent = `Week ${currentWeekNumber()} of 12`;
+}
+function renderPhases(){
+  const wrap = document.getElementById('phaseList');
+  wrap.innerHTML = '';
+  const curWeek = currentWeekNumber();
+  PHASES.forEach(phase=>{
+    const isCurrent = phase.weeks.includes(curWeek);
+    const card = document.createElement('div');
+    card.className = 'phase-card' + (isCurrent ? ' current' : '');
+    card.innerHTML = `
+      <div class="phase-head"><h3>${phase.title}</h3></div>
+      <p class="phase-struct">${phase.struct}</p>
+      <div class="week-toggles">
+        ${phase.weeks.map(w=>`
+          <div class="week-toggle ${weeksCompleted[w-1] ? 'done':''}" data-week="${w}">
+            <span class="dot"></span> Week ${w}
+          </div>`).join('')}
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('.week-toggle').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const w = parseInt(el.dataset.week,10);
+      weeksCompleted[w-1] = !weeksCompleted[w-1];
+      await saveWeeks();
+      renderHeader();
+      renderPhases();
+      renderTrack();
+    });
+  });
+}
+
+/* ---------------- RENDER: LIFT ---------------- */
+function renderLifts(){
+  const wrap = document.getElementById('liftList');
+  wrap.innerHTML = '';
+  LIFTS.forEach((group,i)=>{
+    const card = document.createElement('div');
+    card.className = 'lift-group';
+    card.innerHTML = `
+      <div class="lift-group-head">
+        <h3><span class="swatch" style="background:${group.swatch}"></span>${group.name}</h3>
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="lift-list"><ul>${group.exercises.map(e=>`<li>${e}</li>`).join('')}</ul></div>
+    `;
+    card.querySelector('.lift-group-head').addEventListener('click', ()=>{
+      const wasOpen = card.classList.contains('open');
+      card.classList.toggle('open');
+      const list = card.querySelector('.lift-list');
+      list.style.maxHeight = wasOpen ? '0px' : list.scrollHeight+'px';
+    });
+    wrap.appendChild(card);
+  });
+}
+
+/* ---------------- RENDER: TRACK ---------------- */
+function isoWeekKey(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const day = (d.getDay()+6)%7; // Mon=0
+  const monday = new Date(d); monday.setDate(d.getDate()-day);
+  return monday.toISOString().slice(0,10);
+}
+function renderTrack(){
+  const sorted = [...logs].sort((a,b)=> a.date < b.date ? 1 : -1);
+  const latestWeight = sorted.find(l=>l.weight);
+  const latestMile = sorted.find(l=>l.mile);
+  const latestRun = sorted.find(l=>l.run);
+
+  document.getElementById('mLatestWeight').innerHTML = latestWeight ? `${latestWeight.weight} <small>lbs</small>` : '—';
+  document.getElementById('mMile').textContent = latestMile ? latestMile.mile : '—';
+  document.getElementById('mLastRun').textContent = latestRun ? latestRun.run : '—';
+
+  if(logs.length){
+    const todayKey = isoWeekKey(new Date().toISOString().slice(0,10));
+    const thisWeek = logs.filter(l=>l.weight && isoWeekKey(l.date)===todayKey);
+    if(thisWeek.length){
+      const avg = thisWeek.reduce((s,l)=>s+parseFloat(l.weight),0)/thisWeek.length;
+      document.getElementById('mWeekAvg').innerHTML = `${avg.toFixed(1)} <small>lbs</small>`;
+    } else {
+      document.getElementById('mWeekAvg').textContent = '—';
+    }
+  } else {
+    document.getElementById('mWeekAvg').textContent = '—';
+  }
+
+  const curWeek = currentWeekNumber();
+  const phase = PHASES.find(p=>p.weeks.includes(curWeek));
+  document.getElementById('currentRunNote').innerHTML = phase
+    ? `<b>This week's target (Week ${curWeek}):</b> ${phase.struct}`
+    : `Plan complete — nice work.`;
+}
+
+/* ---------------- RENDER: LOG HISTORY ---------------- */
+function renderHistory(){
+  const wrap = document.getElementById('historyList');
+  wrap.innerHTML = '';
+  if(!logs.length){
+    wrap.innerHTML = '<div class="empty-state">No entries yet. Log today above to get started.</div>';
+    return;
+  }
+  const sorted = [...logs].sort((a,b)=> a.date < b.date ? 1 : -1);
+  sorted.forEach(l=>{
+    const stats = [];
+    if(l.weight) stats.push(`${l.weight} lbs`);
+    if(l.mile) stats.push(`mile ${l.mile}`);
+    if(l.run) stats.push(l.run);
+    if(l.cal) stats.push(`${l.cal} cal`);
+    const macro = [l.protein&&`P${l.protein}`, l.carbs&&`C${l.carbs}`, l.fat&&`F${l.fat}`].filter(Boolean).join(' · ');
+    if(macro) stats.push(macro);
+    const card = document.createElement('div');
+    card.className = 'entry-card';
+    const dateLabel = new Date(l.date+'T00:00:00').toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+    card.innerHTML = `
+      <div>
+        <div class="date">${dateLabel}</div>
+        <div class="stats">${stats.length ? stats.join(' · ') : 'No metrics logged'}${l.notes ? '<br>'+l.notes : ''}</div>
+      </div>
+      <button class="del" data-id="${l.id}">×</button>
+    `;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      logs = logs.filter(l=>l.id !== btn.dataset.id);
+      await saveLogs();
+      renderHistory();
+      renderTrack();
+    });
+  });
+}
+
+/* ---------------- SAVE ENTRY ---------------- */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const date = document.getElementById('inDate').value || new Date().toISOString().slice(0,10);
+  const entry = {
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    date,
+    weight: document.getElementById('inWeight').value.trim(),
+    run: document.getElementById('inRun').value.trim(),
+    mile: document.getElementById('inMile').value.trim(),
+    cal: document.getElementById('inCal').value.trim(),
+    protein: document.getElementById('inProtein').value.trim(),
+    carbs: document.getElementById('inCarbs').value.trim(),
+    fat: document.getElementById('inFat').value.trim(),
+    notes: document.getElementById('inNotes').value.trim(),
+  };
+  // replace existing entry for same date, if any
+  logs = logs.filter(l=>l.date !== date);
+  logs.push(entry);
+  await saveLogs();
+  ['inWeight','inRun','inMile','inCal','inProtein','inCarbs','inFat','inNotes'].forEach(id=>document.getElementById(id).value='');
+  renderHistory();
+  renderTrack();
+  showToast('Entry saved');
+});
+
+/* ---------------- INIT ---------------- */
+(async function init(){
+  document.getElementById('inDate').value = new Date().toISOString().slice(0,10);
+  await loadState();
+  renderHeader();
+  renderPhases();
+  renderLifts();
+  renderTrack();
+  renderHistory();
+})();
+</script>
+</body>
+</html>
