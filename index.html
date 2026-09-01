@@ -351,9 +351,10 @@
     bottom:0;
     width:100%;
     max-width: 480px;
-    background: rgba(251,249,244,0.92);
+    background: #39FF14;
     backdrop-filter: blur(14px);
-    border-top: 1px solid var(--line);
+    border-top: 2px solid #39FF14;
+    box-shadow:0 0 15px #39FF14;
     display:flex;
     padding: 8px 8px calc(10px + var(--safe-bottom));
     z-index: 30;
@@ -363,14 +364,14 @@
     background:none; border:none;
     display:flex; flex-direction:column; align-items:center; gap:4px;
     padding: 6px 2px;
-    color: var(--ink-soft);
+    color: #000000;
     font-family:'Inter', sans-serif;
     font-size: 10.5px;
     font-weight: 600;
     cursor:pointer;
   }
   nav.tab-bar button svg{ width:22px; height:22px; }
-  nav.tab-bar button.active{ color: var(--rust); }
+  nav.tab-bar button.active{ color: #00FF66; }
 </style>
 </head>
 <body>
