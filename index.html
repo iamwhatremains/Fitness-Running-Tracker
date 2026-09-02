@@ -734,7 +734,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
 });
 
 /* ---------------- INIT ---------------- */
-(async function init(){
+(function init(){
   document.getElementById('inDate').value = new Date().toISOString().slice(0,10);
   loadState();
   renderHeader();
