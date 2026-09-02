@@ -591,7 +591,7 @@ function renderPhases(){
     wrap.appendChild(card);
   });
   wrap.querySelectorAll('.week-toggle').forEach(el=>{
-    el.addEventListener('click', async ()=>{
+    el.addEventListener('click', ()=>{
       const w = parseInt(el.dataset.week,10);
       weeksCompleted[w-1] = !weeksCompleted[w-1];
       saveWeeks();
@@ -693,7 +693,7 @@ function renderHistory(){
     wrap.appendChild(card);
   });
   wrap.querySelectorAll('.del').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
+    btn.addEventListener('click', ()=>{
       logs = logs.filter(l=>l.id !== btn.dataset.id);
       saveLogs();
       renderHistory();
@@ -709,7 +709,7 @@ function showToast(msg){
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 1800);
 }
-document.getElementById('saveBtn').addEventListener('click', async ()=>{
+document.getElementById('saveBtn').addEventListener('click', ()=>{
   const date = document.getElementById('inDate').value || new Date().toISOString().slice(0,10);
   const entry = {
     id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
