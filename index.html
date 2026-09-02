@@ -526,7 +526,7 @@ let logs = []; // {id,date,weight,run,mile,cal,protein,carbs,fat,notes}
 function loadState(){
   const savedWeeks = localStorage.getItem('weeks-completed');
   if(savedWeeks){
-    weeksComplted = JSON.parse(savedWeeks);
+    weeksCompleted = JSON.parse(savedWeeks);
   }
 
   const savedLogs = localStorage.getItem('daily-logs');
@@ -544,7 +544,7 @@ function saveWeeks(){
 
 function saveLogs(){
   localStorage.setItem(
-    'daily-logs",
+    'daily-logs',
     JSON.stringify(logs)
   );
 }
