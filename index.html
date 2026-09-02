@@ -523,23 +523,30 @@ let weeksCompleted = Array(12).fill(false);
 let logs = []; // {id,date,weight,run,mile,cal,protein,carbs,fat,notes}
 
 /* ---------------- STORAGE HELPERS ---------------- */
-async function loadState(){
-  try{
-    const r = await window.storage.get('weeks-completed');
-    if(r && r.value) weeksCompleted = JSON.parse(r.value);
-  }catch(e){ /* no data yet */ }
-  try{
-    const r = await window.storage.get('daily-logs');
-    if(r && r.value) logs = JSON.parse(r.value);
-  }catch(e){ /* no data yet */ }
+function loadState(){
+  const savedWeeks = localStorage.getItem('weeks-completed');
+  if(savedWeeks){
+    weeksComplted = JSON.parse(savedWeeks);
+  }
+
+  const savedLogs = localStorage.getItem(,'daily-logs');
+  if(savedLogs){
+    logs = JSON.parse(savedLogs);
+  }
 }
-async function saveWeeks(){
-  try{ await window.storage.set('weeks-completed', JSON.stringify(weeksCompleted)); }
-  catch(e){ console.error('save weeks failed', e); }
+  
+function saveWeeks(){
+  localStorage.setItem(
+    'weeks-completed',
+    JSON.stringify(weeksCompleted)
+  );
 }
-async function saveLogs(){
-  try{ await window.storage.set('daily-logs', JSON.stringify(logs)); }
-  catch(e){ console.error('save logs failed', e); }
+
+function saveLogs(){
+  localStorage.setItem(
+    'daily-logs",
+    JSON.stringify(logs)
+  );
 }
 
 /* ---------------- TABS ---------------- */
@@ -587,7 +594,7 @@ function renderPhases(){
     el.addEventListener('click', async ()=>{
       const w = parseInt(el.dataset.week,10);
       weeksCompleted[w-1] = !weeksCompleted[w-1];
-      await saveWeeks();
+      saveWeeks();
       renderHeader();
       renderPhases();
       renderTrack();
@@ -688,7 +695,7 @@ function renderHistory(){
   wrap.querySelectorAll('.del').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       logs = logs.filter(l=>l.id !== btn.dataset.id);
-      await saveLogs();
+      saveLogs();
       renderHistory();
       renderTrack();
     });
@@ -719,7 +726,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   // replace existing entry for same date, if any
   logs = logs.filter(l=>l.date !== date);
   logs.push(entry);
-  await saveLogs();
+  saveLogs();
   ['inWeight','inRun','inMile','inCal','inProtein','inCarbs','inFat','inNotes'].forEach(id=>document.getElementById(id).value='');
   renderHistory();
   renderTrack();
@@ -729,7 +736,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
 /* ---------------- INIT ---------------- */
 (async function init(){
   document.getElementById('inDate').value = new Date().toISOString().slice(0,10);
-  await loadState();
+  loadState();
   renderHeader();
   renderPhases();
   renderLifts();
